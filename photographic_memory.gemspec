@@ -9,9 +9,9 @@ Gem::Specification.new do |s|
   s.files          = ["lib/photographic_memory.rb"]
   s.homepage       = "http://github.com/scpr/photographic_memory"
   s.license        = "MIT"
-  s.add_dependency = "aws-sdk", "~> 2"
-  s.add_dependency = "mini_exiftool", "~> 2.8.0"
-  s.add_dependency = "rack", "~> 2.0.3"
+  s.add_dependency "aws-sdk", "~> 2"
+  s.add_dependency "mini_exiftool", "~> 2.8.0"
+  s.add_dependency "rack", "~> 2.0.3"
   s.add_development_dependency "minitest", "~> 5.11.3"
 end
 
