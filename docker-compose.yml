@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  s3:
+    image: fingershock/fakes3:0.2.4
+    container_name: photographic-memory-s3
+    ports:
+      - 8080:8000/tcp
+    volumes:
+      - ./s3-data:/fakes3_data:rw
+    networks:
+      photographic-memory-network:
+        aliases:
+          - s3
+
+# volumes:
+#   s3-data:
+
+networks:
+  photographic-memory-network:
+
