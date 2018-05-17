@@ -5,6 +5,26 @@ require "rack/mime"
 require "aws-sdk"
 require "mini_exiftool"
 
+##
+# An image processing client that uses ImageMagick's convert and an AWS S3-like API for storage.
+#
+# @example
+#
+# client = PhotographicMemory.new(@config)
+# client.put file: image, id: 123
+#
+# @param [Hash]    config
+# @param [String]  config[:environment]          - The application environment.  Is optional and only changes behavior with the string "test", which stubs S3 responses and prevents calls to Rekognition.
+# @param [String]  config[:s3_region]            - The region to use for S3.  Only relevant when actually using AWS S3.
+# @param [String]  config[:s3_endpoint]          - The endpoint to use for S3 calls.  Only required when using your own S3-compatible storage medium.
+# @param [Boolean] config[:s3_force_path_style]  - Forces path style for S3 API calls.  Defaults to true.
+# @param [String]  config[:s3_access_key_id]     - The access key ID for S3 calls.
+# @param [String]  config[:s3_secret_access_key] - The secret access key for S3 calls.
+# @param [string]  config[:s3_signature_version] - The signature version for S3 calls.  Defaults to 's3'.
+# @param [string]  config[:rekognition_access_key_id]     - The access key ID for Rekognition calls.
+# @param [string]  config[:rekognition_secret_access_key] - The secret access key for Rekognition calls.
+# @param [string]  config[:rekognition_region]            - The region for Rekognition calls.
+#
 class PhotographicMemory
 
   attr_accessor :config, :s3_client
@@ -28,7 +48,7 @@ class PhotographicMemory
   end
 
   def put file:, id:, style_name:'original', convert_options: [], content_type:
-    unless (style_name == 'original') || convert_options.empty? # we assume original *means* original
+    unless (style_name == 'original') || convert_options.empty?
       if content_type.match "image/gif"
         output = render_gif file, convert_options
       else
@@ -49,7 +69,7 @@ class PhotographicMemory
       body: output,
       content_type: content_type
     })
-    if style_name == 'original' && config[:environment] === "test"
+    if style_name == 'original' && config[:environment] != "test"
       reference = StringIO.new render(file, ["-quality 10"])
       # 👆 this is a low quality reference image we generate
       # which is sufficient for classification purposes but
@@ -106,11 +126,6 @@ class PhotographicMemory
     end
     file.rewind
     run_command ["convert", "-", convert_options, "gif:-"].flatten.join(" "), file.read.force_encoding("UTF-8")
-  end
-
-  def pixels file
-    results = run_command "convert - -depth 8  txt:-", file.read
-    results.split("\n").map{|line| (line.split(" ")[1] || "0,0,0,1").split(",").map(&:to_i) }
   end
 
   def classify file
