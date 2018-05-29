@@ -47,8 +47,8 @@ class PhotographicMemory
     @s3_client = Aws::S3::Client.new(options)
   end
 
-  def put file:, id:, style_name:'original', convert_options: [], content_type:
-    unless (style_name == 'original') || convert_options.empty?
+  def put file:, id:, style_name:"original", convert_options: [], content_type:
+    unless (style_name == "original") || convert_options.empty?
       if content_type.match "image/gif"
         output = render_gif file, convert_options
       else
@@ -69,13 +69,13 @@ class PhotographicMemory
       body: output,
       content_type: content_type
     })
-    if style_name == 'original' && config[:environment] != "test"
+    if style_name == "original" && config[:environment] != "test"
       reference = StringIO.new render(file, ["-quality 10"])
       # 👆 this is a low quality reference image we generate
       # which is sufficient for classification purposes but
       # saves bandwidth and overcomes the file size limit
       # for Rekognition
-      keywords = classify reference
+      keywords = detect_labels reference
       gravity  = detect_gravity reference
     else
       keywords = []
@@ -130,11 +130,7 @@ class PhotographicMemory
 
   def classify file
     file.rewind
-
-    @labels ||= detect_labels file
-    @faces  ||= detect_faces file
-
-    @labels
+    detect_labels file
   rescue Aws::Rekognition::Errors::ServiceError, Aws::Errors::MissingRegionError, Seahorse::Client::NetworkingError
     # This also is not worth crashing over
     []
@@ -187,7 +183,7 @@ class PhotographicMemory
         @config[:rekognition_secret_access_key]
       )
     })
-    @labels ||= client.detect_labels({
+    client.detect_labels({
       image: {
         bytes: file
       },
@@ -208,7 +204,7 @@ class PhotographicMemory
         @config[:rekognition_secret_access_key]
       )
     })
-    @faces ||= client.detect_faces({
+    client.detect_faces({
       image: {
         bytes: file
       },

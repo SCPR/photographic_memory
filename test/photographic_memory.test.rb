@@ -9,7 +9,7 @@ describe PhotographicMemory do
       s3_access_key_id:     "xxx",
       s3_secret_access_key: "xxx",
       s3_bucket:            "uploads",
-      s3_endpoint:          "http://127.0.0.1:8080/"
+      s3_endpoint:          "http://127.0.0.1:8000/"
     })
   end
 
