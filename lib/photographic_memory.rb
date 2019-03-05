@@ -47,7 +47,7 @@ class PhotographicMemory
     @s3_client = Aws::S3::Client.new(options)
   end
 
-  def put file:, id:, style_name:"original", convert_options: [], content_type:
+  def put file:, key:, id:, style_name:"original", convert_options: [], content_type:
     unless (style_name == "original") || convert_options.empty?
       if content_type.match "image/gif"
         output = render_gif file, convert_options
@@ -62,7 +62,7 @@ class PhotographicMemory
     rendered_digest    = Digest::MD5.hexdigest(output)
     output_fingerprint = (style_name == "original") ? "original" : rendered_digest
     extension          = Rack::Mime::MIME_TYPES.invert[content_type]
-    key = "#{id}_#{original_digest}_#{output_fingerprint}#{extension}"
+    key ||= "#{id}_#{original_digest}_#{output_fingerprint}#{extension}"
     @s3_client.put_object({
       bucket: @config[:s3_bucket],
       key: key,
